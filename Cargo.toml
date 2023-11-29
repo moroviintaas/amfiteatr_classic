@@ -6,3 +6,12 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+
+rand = "0.8.5"
+amfi = {path = "../amfi"}
+amfi_rl = {path = "../amfi_rl"}
+tch = "0.14.0"
+enum-map = "2.7.3"
+log = "0.4.20"
+serde = "1.0.193"
+thiserror = "1.0.50"
