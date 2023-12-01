@@ -252,7 +252,7 @@ impl<T> IndexMut<PrisonerId> for PrisonerMap<T>{
 
 pub const PRISONERS:[PrisonerId;2] = [PrisonerId::Alice, PrisonerId::Bob];
 
-pub type IntReward = i32;
+pub type IntReward = i64;
 
 
 #[derive(Debug, Clone)]

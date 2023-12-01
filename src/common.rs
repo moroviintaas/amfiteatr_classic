@@ -118,11 +118,11 @@ mod tests{
 
     #[test]
     fn size_of_symmetric_table(){
-        assert_eq!(size_of::<SymmetricRewardTableInt>(), 16);
+        assert_eq!(size_of::<SymmetricRewardTableInt>(), 32);
     }
     #[test]
     fn size_of_asymmetric_table(){
-        assert_eq!(size_of::<AsymmetricRewardTableInt>(), 32);
+        assert_eq!(size_of::<AsymmetricRewardTableInt>(), 64);
     }
 }
 

@@ -58,7 +58,7 @@ pub struct PairingState<ID: UsizeAgentId>{
     target_rounds: usize,
     indexes: Vec<usize>,
     reward_table: AsymmetricRewardTableInt,
-    score_cache: Vec<i32>,
+    score_cache: Vec<i64>,
     current_player_index: usize,
     _id: PhantomData<ID>
 
