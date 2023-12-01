@@ -1,4 +1,5 @@
 use std::fmt::{Display, Formatter};
+use log::trace;
 use tch::Tensor;
 use amfi::agent::{AgentIdentifier, InformationSet, PresentPossibleActions, ScoringInformationSet};
 use amfi::domain::{Renew};
@@ -52,8 +53,8 @@ impl<ID: UsizeAgentId> Display for OwnHistoryInfoSet<ID> {
          */
         for r in 0..self.previous_encounters.len(){
             let enc = &self.previous_encounters[r];
-            write!(f, "\tpaired against {},\tplayed {}\tagainst {}\n",
-                ID::make_from_usize(enc.other_id.as_usize()), enc.own_action, enc.other_player_action)?;
+            write!(f, "\tround: {:3.}, paired against {},\tplayed {}\tagainst {}\n",
+                r, ID::make_from_usize( enc.other_id.as_usize()), enc.own_action, enc.other_player_action)?;
         }
         write!(f, "")
     }
@@ -87,8 +88,10 @@ impl<ID: UsizeAgentId> InformationSet<ClassicGameDomain<ID>> for OwnHistoryInfoS
     }
 
     fn update(&mut self, update: ClassicGameUpdate<ID>) -> Result<(), ClassicGameError<ID>> {
+
         let report = update.encounters[self.id.as_usize()];
         self.previous_encounters.push(report);
+        trace!("After info set update, with {} previous actions", self.previous_encounters.len());
         Ok(())
     }
 }

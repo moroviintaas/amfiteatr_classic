@@ -3,7 +3,7 @@ use rand::prelude::SliceRandom;
 use rand::thread_rng;
 use amfi::domain::{Renew};
 use amfi::env::{EnvironmentStateUniScore, EnvStateSequential};
-use log::{debug};
+use log::{debug, trace};
 use std::fmt::{Display, Formatter};
 use std::marker::PhantomData;
 use crate::domain::{AgentNum, ClassicAction, ClassicGameDomain, ClassicGameError, ClassicGameUpdate, EncounterReport, IntReward, UsizeAgentId};
@@ -215,7 +215,7 @@ impl<ID: UsizeAgentId> EnvStateSequential<ClassicGameDomain<ID>> for PairingStat
         -> Result<Self::Updates, ClassicGameError<ID>> {
         if let Some(destined_agent) = self.current_player(){
             if destined_agent == agent{
-                debug!("Forwarding environment with agent {agent:} action: {action:?}");
+                debug!("Forwarding environment with agent {agent:} action: {action:?}, ");
                 self.actual_pairings[agent.as_usize()].taken_action = Some(action);
                 let this_pairing = self.actual_pairings[agent.as_usize()];
                 let other_player_index = this_pairing.paired_player;
@@ -233,6 +233,7 @@ impl<ID: UsizeAgentId> EnvStateSequential<ClassicGameDomain<ID>> for PairingStat
                     };
                     self.score_cache[agent.as_usize()] += rewards_reoriented.0;
                     self.score_cache[other_player_index.as_usize()] += rewards_reoriented.1;
+
 
                 }
                 //set next index
@@ -258,6 +259,7 @@ impl<ID: UsizeAgentId> EnvStateSequential<ClassicGameDomain<ID>> for PairingStat
 
                     self.prepare_new_pairing()?;
                     self.current_player_index = 0;
+                    trace!("Played rounds so far: {}", self.previous_pairings.len());
                     debug!("Last player in round played, preparing new round, setting player index to 0");
 
                     let opairings = match self.is_finished(){
@@ -273,6 +275,7 @@ impl<ID: UsizeAgentId> EnvStateSequential<ClassicGameDomain<ID>> for PairingStat
                         (ID::make_from_usize(i), singe_update.clone())
                     }).collect();
 
+                    trace!("Finishing round. Now after: {}", self.previous_pairings.len());
                     Ok(updates)
 
                 } else{
@@ -309,7 +312,9 @@ impl<ID: UsizeAgentId> Renew<()> for PairingState<ID>{
         }
         self.previous_pairings.clear();
         self.current_player_index = 0;
-        self.prepare_new_pairing().unwrap();
+        let mut rng = thread_rng();
+        self.indexes.shuffle(&mut rng);
+        self.actual_pairings = Self::create_pairings(&self.indexes[..]).unwrap();
         debug!("After renewing state, with pairings of length = {}", self.actual_pairings.len())
     }
 }
