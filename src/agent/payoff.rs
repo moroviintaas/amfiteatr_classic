@@ -226,6 +226,13 @@ impl VerboseReward<IntReward>{
         self.table_payoff as f32 + (action_count_weight * self.count_other_actions(Cooperate) as f32)
     }
 
+    pub fn count_both_actions(&self, action: ClassicAction) -> IntReward{
+        self.count_other_actions(action) + self.count_own_actions(action)
+    }
+    pub fn f_combine_table_with_both_coop(&self, action_count_weight: f32) -> f32{
+        self.table_payoff as f32 + (action_count_weight * self.count_both_actions(Cooperate) as f32)
+    }
+
 
 
 }
