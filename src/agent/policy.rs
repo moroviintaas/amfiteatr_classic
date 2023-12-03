@@ -1,4 +1,4 @@
-use amfi::agent::{AgentIdentifier, Policy};
+use amfi::agent::Policy;
 use crate::agent::OwnHistoryInfoSet;
 use crate::domain::ClassicAction::Cooperate;
 use crate::domain::{ClassicAction, ClassicGameDomain, UsizeAgentId};
