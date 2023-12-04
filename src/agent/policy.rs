@@ -1,6 +1,8 @@
+use std::cell::Cell;
+use std::fmt::{Debug, Formatter};
 use amfi::agent::Policy;
 use crate::agent::OwnHistoryInfoSet;
-use crate::domain::ClassicAction::Cooperate;
+use crate::domain::ClassicAction::{Cooperate, Defect};
 use crate::domain::{ClassicAction, ClassicGameDomain, UsizeAgentId};
 
 pub struct SwitchAfterTwo{
@@ -24,5 +26,69 @@ impl<ID: UsizeAgentId> Policy<ClassicGameDomain<ID>> for SwitchAfterTwo{
         } else {
             Some(Cooperate)
         }
+    }
+}
+
+
+#[derive(Clone, Default)]
+pub struct FibonacciForgiveStrategy{
+}
+
+impl FibonacciForgiveStrategy{
+
+}
+
+impl Debug for FibonacciForgiveStrategy{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "FibonacciForgiveStrategy", )
+    }
+}
+
+fn fibonacci(index: u64) -> u64{
+
+    match index{
+        0 => 0,
+        1 => 1,
+        n => {
+            let mut f1 = 0;
+            let mut f2 = 1;
+            let mut f = 1;
+            for i in 2..=n{
+                f = f1 + f2;
+                f1 = f2;
+                f2 = f
+            }
+            f
+        }
+    }
+
+}
+
+
+impl<ID: UsizeAgentId> Policy<ClassicGameDomain<ID>> for FibonacciForgiveStrategy{
+    type InfoSetType = OwnHistoryInfoSet<ID>;
+
+    fn select_action(&self, state: &Self::InfoSetType) -> Option<ClassicAction> {
+
+        let enemy_defects = state.count_actions_other(Defect) as u64;
+        let enemy_coops = state.count_actions_other(Cooperate) as u64;
+
+        let penalty = fibonacci(enemy_defects);
+        if penalty > enemy_coops{
+            Some(Defect)
+        } else {
+            Some(Cooperate)
+        }
+
+    }
+}
+
+#[cfg(test)]
+mod tests{
+    use crate::agent::policy::fibonacci;
+
+    #[test]
+    fn t_fibonacci(){
+        assert_eq!(fibonacci(10), 55)
     }
 }
