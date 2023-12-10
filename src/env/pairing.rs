@@ -6,6 +6,7 @@ use amfi::env::{EnvironmentStateUniScore, EnvStateSequential};
 use log::{debug, trace};
 use std::fmt::{Display, Formatter};
 use std::marker::PhantomData;
+use serde::Serialize;
 use crate::domain::{AgentNum, ClassicAction, ClassicGameDomain, ClassicGameError, ClassicGameUpdate, EncounterReport, IntReward, UsizeAgentId};
 use crate::domain::ClassicGameError::ActionAfterGameOver;
 use crate::{AsymmetricRewardTableInt, Side};
@@ -27,7 +28,7 @@ impl DomainParameters for PairDomain{
 
 
 
-#[derive(Copy, Clone, Debug, Default)]
+#[derive(Copy, Clone, Debug, Default, Serialize)]
 pub struct PlayerPairing<ID: UsizeAgentId> {
     pub paired_player: ID,
     pub taken_action: Option<ClassicAction>,
@@ -51,7 +52,7 @@ impl<ID: UsizeAgentId> Display for PlayerPairing<ID>{
 
 pub type PairingVec<ID> = Vec<PlayerPairing<ID>>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct PairingState<ID: UsizeAgentId>{
     actual_pairings: PairingVec<ID>,
     previous_pairings: Vec<Arc<PairingVec<ID>>>,

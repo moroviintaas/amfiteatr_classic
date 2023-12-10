@@ -13,5 +13,5 @@ amfi_rl = {path = "../amfi_rl"}
 tch = "0.14.0"
 enum-map = "2.7.3"
 log = "0.4.20"
-serde = "1.0.193"
+serde = {version = "1.0.193", features = ["rc", "derive"]}
 thiserror = "1.0.50"

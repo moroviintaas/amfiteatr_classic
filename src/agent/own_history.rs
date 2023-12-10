@@ -11,7 +11,7 @@ use crate::domain::{AgentNum, AsUsize, ClassicAction, ClassicGameDomain, Classic
 use crate::domain::ClassicAction::{Cooperate, Defect};
 
 #[derive(Clone, Debug)]
-pub struct OwnHistoryInfoSet<ID: AgentIdentifier>{
+pub struct OwnHistoryInfoSet<ID: UsizeAgentId>{
     id: ID,
     previous_encounters: Vec<EncounterReport<ID>>,
     reward_table: AsymmetricRewardTableInt,
@@ -20,7 +20,7 @@ pub struct OwnHistoryInfoSet<ID: AgentIdentifier>{
 
 }
 
-impl<ID: AgentIdentifier> OwnHistoryInfoSet<ID>{
+impl<ID: UsizeAgentId> OwnHistoryInfoSet<ID>{
 
     pub fn new(id: ID, reward_table: AsymmetricRewardTableInt) -> Self{
         Self{id, reward_table, previous_encounters: Default::default(), count_actions: Default::default(),
