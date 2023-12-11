@@ -1,5 +1,6 @@
 use std::fmt::{Display, Formatter};
 use log::trace;
+use serde::Serialize;
 use tch::Tensor;
 use amfi::agent::{AgentIdentifier, InformationSet, PresentPossibleActions, ScoringInformationSet};
 use amfi::domain::{Renew};
@@ -10,7 +11,7 @@ use crate::AsymmetricRewardTableInt;
 use crate::domain::{AgentNum, AsUsize, ClassicAction, ClassicGameDomain, ClassicGameError, ClassicGameUpdate, EncounterReport, UsizeAgentId};
 use crate::domain::ClassicAction::{Cooperate, Defect};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct OwnHistoryInfoSet<ID: UsizeAgentId>{
     id: ID,
     previous_encounters: Vec<EncounterReport<ID>>,

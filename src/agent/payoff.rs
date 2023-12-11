@@ -2,6 +2,7 @@ use std::cmp::Ordering;
 use std::fmt::Debug;
 use std::ops::{Add, AddAssign, Index, IndexMut, Sub};
 use enum_map::{enum_map, EnumMap};
+use serde::Serialize;
 use amfi::domain::Reward;
 use crate::domain::{ClassicAction, IntReward};
 use crate::domain::ClassicAction::{Cooperate, Defect};
@@ -9,7 +10,7 @@ use crate::domain::ClassicAction::{Cooperate, Defect};
 
 pub type Level1ActionMap<T> = EnumMap<ClassicAction, T>;
 pub type Level2ActionMap<T> = EnumMap<ClassicAction, Level1ActionMap<T>>;
-#[derive(Copy, Clone, Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize)]
 pub struct ActionCounter<T: Copy + Clone + Debug + PartialEq>(Level2ActionMap<T>);
 
 impl<T: Copy + Clone + Debug + PartialEq> ActionCounter<T>{
@@ -166,7 +167,7 @@ impl<'a, T: Copy + Clone + Debug + Sub<Output = T> + PartialEq> Sub<&'a Self> fo
     }
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Default)]
+#[derive(Copy, Clone, Debug, PartialEq, Default, Serialize)]
 pub struct VerboseReward<R: Reward + Copy>{
     table_payoff: R,
     //count_coop_vs_coop: i64,
