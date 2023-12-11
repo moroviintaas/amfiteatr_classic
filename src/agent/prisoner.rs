@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 use rand::seq::IteratorRandom;
 use tch::Tensor;
-use amfi::agent::{InformationSet, Policy, PresentPossibleActions, ScoringInformationSet};
+use amfi::agent::{InformationSet, Policy, PresentPossibleActions, EvaluatedInformationSet};
 use amfi::domain::{DomainParameters, Reward};
 use amfi::error::ConvertError;
 use amfi_rl::tensor_repr::{ActionTensor, ConvertToTensor, ConvStateToTensor, WayToTensor};
@@ -179,7 +179,7 @@ impl PresentPossibleActions<ClassicGameDomainNamed> for PrisonerInfoSet {
     }
 }
 
-impl ScoringInformationSet<ClassicGameDomainNamed> for PrisonerInfoSet {
+impl EvaluatedInformationSet<ClassicGameDomainNamed> for PrisonerInfoSet {
     type RewardType = f64;
 
     fn current_subjective_score(&self) -> Self::RewardType {

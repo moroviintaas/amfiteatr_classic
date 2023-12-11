@@ -1,4 +1,4 @@
-use amfi::agent::{InformationSet, PresentPossibleActions, ScoringInformationSet};
+use amfi::agent::{InformationSet, PresentPossibleActions, EvaluatedInformationSet};
 use amfi::domain::DomainParameters;
 use std::fmt::Display;
 use std::fmt::Formatter;
@@ -62,7 +62,7 @@ impl InformationSet<ClassicGameDomain<AgentNum>> for HistorylessInfoSet{
     }
 }
 
-impl ScoringInformationSet<ClassicGameDomainNumbered> for HistorylessInfoSet{
+impl EvaluatedInformationSet<ClassicGameDomainNumbered> for HistorylessInfoSet{
     type RewardType = IntReward;
 
     fn current_subjective_score(&self) -> Self::RewardType {

@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 use log::trace;
 use serde::Serialize;
 use tch::Tensor;
-use amfi::agent::{AgentIdentifier, InformationSet, PresentPossibleActions, ScoringInformationSet};
+use amfi::agent::{AgentIdentifier, InformationSet, PresentPossibleActions, EvaluatedInformationSet};
 use amfi::domain::{Renew};
 use amfi_rl::error::TensorRepresentationError;
 use amfi_rl::tensor_repr::{ConvertToTensor, WayToTensor};
@@ -212,7 +212,7 @@ impl<ID: UsizeAgentId> Renew<()> for OwnHistoryInfoSet<ID>{
 }
 
 
-impl<ID: UsizeAgentId> ScoringInformationSet<ClassicGameDomain<ID>,> for OwnHistoryInfoSet<ID>{
+impl<ID: UsizeAgentId> EvaluatedInformationSet<ClassicGameDomain<ID>,> for OwnHistoryInfoSet<ID>{
     type RewardType = VerboseReward<i64>;
 
     fn current_subjective_score(&self) -> Self::RewardType {

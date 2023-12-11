@@ -1,12 +1,12 @@
 use std::fmt::{Debug};
-use amfi::agent::{ InformationSet, PresentPossibleActions, ScoringInformationSet};
+use amfi::agent::{InformationSet, PresentPossibleActions, EvaluatedInformationSet};
 use amfi::domain::DomainParameters;
 use crate::domain::{ClassicAction, ClassicGameDomainNumbered, IntReward};
 
 
 #[derive(Debug)]
 pub struct BoxedClassicInfoSet{
-    pub internal: Box<dyn ScoringInformationSet<ClassicGameDomainNumbered,  RewardType=IntReward>>,
+    pub internal: Box<dyn EvaluatedInformationSet<ClassicGameDomainNumbered,  RewardType=IntReward>>,
 }
 
 impl InformationSet<ClassicGameDomainNumbered> for BoxedClassicInfoSet {
@@ -24,7 +24,7 @@ impl InformationSet<ClassicGameDomainNumbered> for BoxedClassicInfoSet {
 }
 
 
-impl ScoringInformationSet<ClassicGameDomainNumbered> for BoxedClassicInfoSet{
+impl EvaluatedInformationSet<ClassicGameDomainNumbered> for BoxedClassicInfoSet{
     type RewardType = IntReward;
 
     fn current_subjective_score(&self) -> Self::RewardType {
