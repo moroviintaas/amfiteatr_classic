@@ -2,7 +2,7 @@ use std::fmt::{Display, Formatter};
 use log::trace;
 use serde::Serialize;
 use tch::Tensor;
-use amfi::agent::{AgentIdentifier, InformationSet, PresentPossibleActions, EvaluatedInformationSet};
+use amfi::agent::{InformationSet, PresentPossibleActions, EvaluatedInformationSet};
 use amfi::domain::{Renew};
 use amfi_rl::error::TensorRepresentationError;
 use amfi_rl::tensor_repr::{ConvertToTensor, WayToTensor};
@@ -120,7 +120,7 @@ impl<ID: UsizeAgentId> InformationSet<ClassicGameDomain<ID>> for OwnHistoryInfoS
         }
         self.previous_encounters.push(report);
         self.cache_table_payoff += report.calculate_reward(&self.reward_table);
-        trace!("After info set update, with {} previous actions", self.previous_encounters.len());
+        trace!("After info set update on agent {}, with {} previous actions", self.agent_id(), self.previous_encounters.len());
         Ok(())
     }
 }

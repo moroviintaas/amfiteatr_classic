@@ -6,7 +6,7 @@ use amfi::agent::{AgentIdentifier};
 use amfi::error::{AmfiError};
 use amfi::domain::{Action, DomainParameters, Reward};
 use enum_map::Enum;
-use serde::{Deserialize, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 use crate::domain::PrisonerId::{Alice, Bob};
 use crate::env::PairingVec;
 use crate::{AsymmetricRewardTable, Side};

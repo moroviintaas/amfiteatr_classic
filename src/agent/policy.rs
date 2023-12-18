@@ -1,4 +1,3 @@
-use std::cell::Cell;
 use std::fmt::{Debug, Formatter};
 use amfi::agent::Policy;
 use crate::agent::OwnHistoryInfoSet;
@@ -53,7 +52,7 @@ fn fibonacci(index: u64) -> u64{
             let mut f1 = 0;
             let mut f2 = 1;
             let mut f = 1;
-            for i in 2..=n{
+            for _i in 2..=n{
                 f = f1 + f2;
                 f1 = f2;
                 f2 = f
