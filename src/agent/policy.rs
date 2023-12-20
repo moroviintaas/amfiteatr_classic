@@ -14,11 +14,39 @@ impl<ID: UsizeAgentId> Policy<ClassicGameDomain<ID>> for SwitchAfterTwo{
 
         if let Some(last_report) = state.previous_encounters().last(){
             let mut other_action = last_report.other_player_action;
-            for i in (0..state.previous_encounters().len()-1).rev(){
+            for i in (0..state.previous_encounters().len()).rev(){
                 if state.previous_encounters()[i].other_player_action == other_action{
                     return Some(other_action)
                 } else {
                     other_action = state.previous_encounters()[i].other_player_action;
+                }
+            }
+            Some(Cooperate)
+        } else {
+            Some(Cooperate)
+        }
+    }
+}
+
+pub struct ForgiveAfterTwo{
+}
+
+
+impl<ID: UsizeAgentId> Policy<ClassicGameDomain<ID>> for ForgiveAfterTwo{
+    type InfoSetType = OwnHistoryInfoSet<ID>;
+
+    fn select_action(&self, state: &Self::InfoSetType) -> Option<ClassicAction> {
+
+        if let Some(last_report) = state.previous_encounters().last(){
+            let mut subsequent_coops = 0;
+            for i in (0..state.previous_encounters().len()).rev(){
+                if state.previous_encounters()[i].other_player_action == Defect{
+                    return Some(Defect)
+                } else {
+                    subsequent_coops += 1;
+                    if subsequent_coops >= 2{
+                        return Some(Cooperate)
+                    }
                 }
             }
             Some(Cooperate)
@@ -78,6 +106,33 @@ impl<ID: UsizeAgentId> Policy<ClassicGameDomain<ID>> for FibonacciForgiveStrateg
         } else {
             Some(Cooperate)
         }
+
+
+        /*
+        let mut subsequent_coops = 1;
+        //let mut enemy_defects = 0;
+        let mut f1 = 0;
+        let mut f2 = 1;
+        let mut forgive_target = 1;
+        for a in state.previous_encounters(){
+            if a.other_player_action == Defect{
+                forgive_target = f2 + f1;
+                f1 = f2;
+                f2 = forgive_target;
+                subsequent_coops = 0;
+
+            } else{
+                subsequent_coops +=1;
+            }
+        }
+        if subsequent_coops >= forgive_target{
+            Some(Cooperate)
+        } else {
+            Some(Defect)
+        }
+
+         */
+        //let mut punishing = false;
 
     }
 }

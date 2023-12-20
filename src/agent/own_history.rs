@@ -6,10 +6,11 @@ use amfi::agent::{InformationSet, PresentPossibleActions, EvaluatedInformationSe
 use amfi::domain::{Renew};
 use amfi_rl::error::TensorRepresentationError;
 use amfi_rl::tensor_repr::{ConvertToTensor, WayToTensor};
-use crate::agent::{ActionCounter, VerboseReward};
+use crate::agent::{ActionCounter, AgentAssessmentClasic};
 use crate::AsymmetricRewardTableInt;
 use crate::domain::{AgentNum, AsUsize, ClassicAction, ClassicGameDomain, ClassicGameError, ClassicGameUpdate, EncounterReport, UsizeAgentId};
 use crate::domain::ClassicAction::{Cooperate, Defect};
+use crate::Side::Left;
 
 #[derive(Clone, Debug, Serialize)]
 pub struct OwnHistoryInfoSet<ID: UsizeAgentId>{
@@ -213,14 +214,41 @@ impl<ID: UsizeAgentId> Renew<()> for OwnHistoryInfoSet<ID>{
 
 
 impl<ID: UsizeAgentId> EvaluatedInformationSet<ClassicGameDomain<ID>,> for OwnHistoryInfoSet<ID>{
-    type RewardType = VerboseReward<i64>;
+    type RewardType = AgentAssessmentClasic<i64>;
 
     fn current_subjective_score(&self) -> Self::RewardType {
-        VerboseReward::new(self.cache_table_payoff, self.count_actions)
+
+        let mut edu_asses = 0.0;
+        if self.previous_encounters.len() >=2{
+            for i in 0..(self.previous_encounters.len()-1){
+
+                if self.previous_encounters[i].other_player_action == Defect
+                    && self.previous_encounters[i+1].own_action == Defect{
+                    edu_asses += 0.1;
+                }
+                if self.previous_encounters[i].other_player_action == Cooperate
+                    && self.previous_encounters[i+1].own_action == Cooperate{
+                    edu_asses += 1.0 +
+                        (self.reward_table.reward_for_side(Left, Defect, Cooperate)
+                            - self.reward_table.reward_for_side(Left, Cooperate, Cooperate)) as f32;
+                }
+            }
+        }
+
+        if let Some(prev) = self.previous_encounters.last(){
+            if prev.own_action == Cooperate && prev.other_player_action == Cooperate{
+                 edu_asses += 1.0 +
+                        (self.reward_table.reward_for_side(Left, Defect, Cooperate)
+                            - self.reward_table.reward_for_side(Left, Cooperate, Cooperate)) as f32;
+            }
+        }
+
+
+        AgentAssessmentClasic::new(self.cache_table_payoff, self.count_actions, edu_asses)
     }
 
     fn penalty_for_illegal(&self) -> Self::RewardType {
-        VerboseReward::with_only_table_payoff(-100)
+        AgentAssessmentClasic::with_only_table_payoff(-100)
     }
 }
 

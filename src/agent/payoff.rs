@@ -168,38 +168,40 @@ impl<'a, T: Copy + Clone + Debug + Sub<Output = T> + PartialEq> Sub<&'a Self> fo
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Default, Serialize)]
-pub struct VerboseReward<R: Reward + Copy>{
+pub struct AgentAssessmentClasic<R: Reward + Copy>{
     table_payoff: R,
     //count_coop_vs_coop: i64,
     //count_coop_vs_defect: i64,
     //count_defect_vs_coop: i64,
     //count_defect_vs_defect: i64,
-    action_counts: ActionCounter<i64>
+    action_counts: ActionCounter<i64>,
+    education_assessment: f32,
 
 }
 
 
-impl<R: Reward + Copy> PartialOrd for VerboseReward<R> {
+impl<R: Reward + Copy> PartialOrd for AgentAssessmentClasic<R> {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         self.table_payoff.partial_cmp(&other.table_payoff)
     }
 }
 
-impl<R: Reward + Copy> VerboseReward<R>{
+impl<R: Reward + Copy> AgentAssessmentClasic<R>{
 
-    pub fn new(table_payoff: R, action_counts: ActionCounter<i64>) -> Self{
-        Self{table_payoff, action_counts}
+    pub fn new(table_payoff: R, action_counts: ActionCounter<i64>, education_assessment: f32) -> Self{
+        Self{table_payoff, action_counts, education_assessment }
     }
 
     pub fn with_only_table_payoff(payoff: R) -> Self{
         Self{
             table_payoff: payoff,
-            action_counts: ActionCounter::zero()
+            action_counts: ActionCounter::zero(),
+            education_assessment: 0.0,
         }
     }
 }
 
-impl VerboseReward<IntReward>{
+impl AgentAssessmentClasic<IntReward>{
 
     pub fn table_payoff(&self) -> IntReward{
         self.table_payoff
@@ -223,6 +225,11 @@ impl VerboseReward<IntReward>{
         self.action_counts[Cooperate][Cooperate] + self.action_counts[Defect][Cooperate]
     }
 
+    pub fn coops_as_reward(&self) -> IntReward{
+        3 * (self.action_counts[Cooperate][Cooperate] + self.action_counts[Defect][Cooperate])
+         + self.action_counts[Cooperate][Defect]
+    }
+
     pub fn f_combine_table_with_other_coop(&self, action_count_weight: f32) -> f32{
         self.table_payoff as f32 + (action_count_weight * self.count_other_actions(Cooperate) as f32)
     }
@@ -234,14 +241,22 @@ impl VerboseReward<IntReward>{
         self.table_payoff as f32 + (action_count_weight * self.count_both_actions(Cooperate) as f32)
     }
 
+    pub fn education_assessment(&self) -> f32{
+        self.education_assessment
+    }
+
+    pub fn combine_edu_assessment(&self, assessment_weight: f32) -> f32{
+        assessment_weight * self.education_assessment + self.table_payoff as f32
+    }
+
 
 
 }
 
 
 
-impl<'a, R: Reward + Copy> Add<&'a Self> for VerboseReward<R> {
-    type Output = VerboseReward<R>;
+impl<'a, R: Reward + Copy> Add<&'a Self> for AgentAssessmentClasic<R> {
+    type Output = AgentAssessmentClasic<R>;
 
     fn add(self, rhs: &'a Self) -> Self::Output {
         Self{
@@ -253,18 +268,20 @@ impl<'a, R: Reward + Copy> Add<&'a Self> for VerboseReward<R> {
             count_defect_vs_defect: self.count_defect_vs_defect + rhs.count_defect_vs_defect
 
              */
-            action_counts: self.action_counts + rhs.action_counts
+            action_counts: self.action_counts + rhs.action_counts,
+            education_assessment: self.education_assessment + rhs.education_assessment,
         }
     }
 }
 
-impl<R: Reward + Copy> Add for VerboseReward<R> {
-    type Output = VerboseReward<R>;
+impl<R: Reward + Copy> Add for AgentAssessmentClasic<R> {
+    type Output = AgentAssessmentClasic<R>;
 
     fn add(self, rhs: Self) -> Self::Output {
         Self{
             table_payoff: self.table_payoff + rhs.table_payoff,
             action_counts: self.action_counts + rhs.action_counts,
+            education_assessment: self.education_assessment + rhs.education_assessment
             /*
             count_coop_vs_coop: self.count_coop_vs_coop + rhs.count_coop_vs_coop,
             count_coop_vs_defect: self.count_coop_vs_defect + rhs.count_coop_vs_defect,
@@ -278,7 +295,7 @@ impl<R: Reward + Copy> Add for VerboseReward<R> {
 
 
 
-impl<'a, R: Reward + Copy> AddAssign<&'a Self> for VerboseReward<R> {
+impl<'a, R: Reward + Copy> AddAssign<&'a Self> for AgentAssessmentClasic<R> {
     fn add_assign(&mut self, rhs: &'a Self) {
         self.table_payoff += &rhs.table_payoff;
         /*
@@ -290,10 +307,11 @@ impl<'a, R: Reward + Copy> AddAssign<&'a Self> for VerboseReward<R> {
          */
 
         self.action_counts += &rhs.action_counts;
+        self.education_assessment += &rhs.education_assessment;
     }
 }
 
-impl<R: Reward + Copy> Sub for VerboseReward<R> {
+impl<R: Reward + Copy> Sub for AgentAssessmentClasic<R> {
     type Output = Self;
 
     fn sub(self, rhs: Self) -> Self::Output {
@@ -306,18 +324,20 @@ impl<R: Reward + Copy> Sub for VerboseReward<R> {
             count_defect_vs_defect: self.count_defect_vs_defect - rhs.count_defect_vs_defect
 
              */
-            action_counts : self.action_counts - rhs.action_counts
+            action_counts : self.action_counts - rhs.action_counts,
+            education_assessment: self.education_assessment - rhs.education_assessment
         }
     }
 }
 
-impl<'a, R: Reward + Copy> Sub<&'a Self> for VerboseReward<R> {
+impl<'a, R: Reward + Copy> Sub<&'a Self> for AgentAssessmentClasic<R> {
     type Output = Self;
 
     fn sub(self, rhs: &'a Self) -> Self::Output {
         Self{
             table_payoff: self.table_payoff - rhs.table_payoff,
-            action_counts : self.action_counts - rhs.action_counts
+            action_counts : self.action_counts - rhs.action_counts,
+            education_assessment: self.education_assessment - rhs.education_assessment
         }
     }
 }
@@ -326,11 +346,12 @@ impl<'a, R: Reward + Copy> Sub<&'a Self> for VerboseReward<R> {
 
 
 
-impl<R: Reward + Copy> Reward for VerboseReward<R>{
+impl<R: Reward + Copy> Reward for AgentAssessmentClasic<R>{
     fn neutral() -> Self {
         Self{
             table_payoff: R::neutral(),
-            action_counts: ActionCounter::zero()
+            action_counts: ActionCounter::zero(),
+            education_assessment: 0.0
         }
     }
 }
