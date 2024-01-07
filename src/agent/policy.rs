@@ -37,7 +37,7 @@ impl<ID: UsizeAgentId> Policy<ClassicGameDomain<ID>> for ForgiveAfterTwo{
 
     fn select_action(&self, state: &Self::InfoSetType) -> Option<ClassicAction> {
 
-        if let Some(last_report) = state.previous_encounters().last(){
+        if let Some(_last_report) = state.previous_encounters().last(){
             let mut subsequent_coops = 0;
             for i in (0..state.previous_encounters().len()).rev(){
                 if state.previous_encounters()[i].other_player_action == Defect{
