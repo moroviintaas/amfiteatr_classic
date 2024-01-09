@@ -2,7 +2,7 @@ use std::sync::Arc;
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
 use amfi::domain::{Renew};
-use amfi::env::{EnvironmentStateUniScore, EnvStateSequential};
+use amfi::env::{EnvironmentStateUniScore, EnvironmentStateSequential};
 use log::{debug, trace};
 use std::fmt::{Display, Formatter};
 use std::marker::PhantomData;
@@ -194,7 +194,7 @@ impl<ID: UsizeAgentId> Display for PairingState<ID>{
     }
 }
 
-impl<ID: UsizeAgentId> EnvStateSequential<ClassicGameDomain<ID>> for PairingState<ID> {
+impl<ID: UsizeAgentId> EnvironmentStateSequential<ClassicGameDomain<ID>> for PairingState<ID> {
     type Updates = Vec<(ID, ClassicGameUpdate<ID>)>;
 
     fn current_player(&self) -> Option<ID> {
