@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use std::ops::{Add, AddAssign, Index, IndexMut, Sub};
 use enum_map::{enum_map, EnumMap};
 use serde::Serialize;
-use amfi::domain::Reward;
+use amfi_core::domain::Reward;
 use crate::domain::{ClassicAction, IntReward};
 use crate::domain::ClassicAction::{Cooperate, Defect};
 

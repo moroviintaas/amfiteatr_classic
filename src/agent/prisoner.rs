@@ -1,9 +1,9 @@
 use std::fmt::{Display, Formatter};
 use rand::seq::IteratorRandom;
 use tch::Tensor;
-use amfi::agent::{InformationSet, Policy, PresentPossibleActions, EvaluatedInformationSet};
-use amfi::domain::{DomainParameters, Reward};
-use amfi::error::ConvertError;
+use amfi_core::agent::{InformationSet, Policy, PresentPossibleActions, EvaluatedInformationSet};
+use amfi_core::domain::{DomainParameters, Reward};
+use amfi_core::error::ConvertError;
 use amfi_rl::tensor_repr::{ActionTensor, ConvertToTensor, ConvStateToTensor, WayToTensor};
 use enum_map::Enum;
 use amfi_rl::error::TensorRepresentationError;

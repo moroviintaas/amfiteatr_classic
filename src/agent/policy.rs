@@ -1,5 +1,5 @@
 use std::fmt::{Debug, Formatter};
-use amfi::agent::Policy;
+use amfi_core::agent::Policy;
 use crate::agent::OwnHistoryInfoSet;
 use crate::domain::ClassicAction::{Cooperate, Defect};
 use crate::domain::{ClassicAction, ClassicGameDomain, UsizeAgentId};

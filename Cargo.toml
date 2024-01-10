@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 
 rand = "0.8.5"
-amfi = {path = "../amfi"}
+amfi_core = {path = "../amfi_core"}
 amfi_rl = {path = "../amfi_rl"}
 tch = "0.14.0"
 enum-map = "2.7.3"

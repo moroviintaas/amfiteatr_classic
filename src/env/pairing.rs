@@ -1,8 +1,8 @@
 use std::sync::Arc;
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
-use amfi::domain::{Renew};
-use amfi::env::{EnvironmentStateUniScore, EnvironmentStateSequential};
+use amfi_core::domain::{Renew};
+use amfi_core::env::{EnvironmentStateUniScore, EnvironmentStateSequential};
 use log::{debug, trace};
 use std::fmt::{Display, Formatter};
 use std::marker::PhantomData;

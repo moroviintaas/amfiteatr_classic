@@ -1,5 +1,5 @@
 use serde::{Serialize, Deserialize};
-use amfi::domain::Reward;
+use amfi_core::domain::Reward;
 use enum_map::{Enum, enum_map, EnumMap};
 use crate::domain::{ClassicAction, IntReward};
 
