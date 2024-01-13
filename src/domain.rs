@@ -3,13 +3,16 @@ use std::marker::PhantomData;
 use std::ops::{Index, IndexMut};
 use std::sync::Arc;
 use amfi_core::agent::{AgentIdentifier};
-use amfi_core::error::{AmfiError};
+use amfi_core::error::{AmfiError, ConvertError};
 use amfi_core::domain::{Action, DomainParameters, Reward};
 use enum_map::Enum;
 use serde::{Deserialize, Serialize};
+use tch::Tensor;
+use amfi_rl::tensor_data::ActionTensor;
 use crate::domain::PrisonerId::{Alice, Bob};
 use crate::env::PairingVec;
 use crate::{AsymmetricRewardTable, Side};
+use crate::domain::ClassicAction::{Cooperate, Defect};
 
 pub trait AsUsize: Serialize{
     fn as_usize(&self) -> usize;
@@ -73,6 +76,40 @@ impl Display for ClassicAction {
 
 impl Action for ClassicAction {}
 //--------------------------------------
+impl ActionTensor for ClassicAction {
+    fn to_tensor(&self) -> Tensor {
+        match self{
+            Defect => Tensor::from_slice(&[0.0f32;1]),
+            Cooperate => Tensor::from_slice(&[1.0f32;1])
+        }
+    }
+
+
+    /// ```
+    /// use amfi_classic::domain::ClassicAction;
+    /// use amfi_classic::domain::ClassicAction::Cooperate;
+    /// use tch::Tensor;
+    /// use amfi_rl::tensor_data::ActionTensor;
+    /// let t = Tensor::from_slice(&[1i64;1]);
+    /// let action = ClassicAction::try_from_tensor(&t).unwrap();
+    /// assert_eq!(action, Cooperate);
+    /// ```
+    fn try_from_tensor(t: &Tensor) -> Result<Self, ConvertError> {
+
+
+        let v: Vec<i64> = match Vec::try_from(t){
+            Ok(v) => v,
+            Err(_) =>{
+                return Err(ConvertError::ActionDeserialize(format!("{}", t)))
+            }
+        };
+        match v[0]{
+            0 => Ok(Defect),
+            1 => Ok(Cooperate),
+            _ => Err(ConvertError::ActionDeserialize(format!("{}", t)))
+        }
+    }
+}
 
 
 #[derive(thiserror::Error, Debug, PartialEq, Clone)]

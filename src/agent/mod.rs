@@ -1,4 +1,4 @@
-mod prisoner;
+//mod prisoner;
 mod historyless;
 mod own_history;
 
@@ -7,7 +7,7 @@ mod payoff;
 mod policy;
 
 
-pub use prisoner::*;
+//pub use prisoner::*;
 pub use historyless::*;
 pub use own_history::*;
 pub use legacy::*;

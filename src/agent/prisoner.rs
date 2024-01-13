@@ -4,7 +4,7 @@ use tch::Tensor;
 use amfi_core::agent::{InformationSet, Policy, PresentPossibleActions, EvaluatedInformationSet};
 use amfi_core::domain::{DomainParameters, Reward};
 use amfi_core::error::ConvertError;
-use amfi_rl::tensor_repr::{ActionTensor, ConvertToTensor, ConvStateToTensor, WayToTensor};
+use amfi_rl::tensor_data::{ActionTensor, ConvertToTensor, ConversionToTensor};
 use enum_map::Enum;
 use amfi_rl::error::TensorRepresentationError;
 use crate::domain::{ClassicAction, ClassicGameDomainNamed, ClassicGameError, ClassicGameUpdate, EncounterReportNamed, PrisonerId};
@@ -206,7 +206,7 @@ impl EvaluatedInformationSet<ClassicGameDomainNamed> for PrisonerInfoSet {
 pub struct PrisonerStateTranslate{
 
 }
-
+/*
 impl ConvStateToTensor<PrisonerInfoSet> for PrisonerStateTranslate{
     fn make_tensor(&self, t: &PrisonerInfoSet) -> Tensor {
         let mut array = [0.0f32;2*256];
@@ -224,45 +224,14 @@ impl ConvStateToTensor<PrisonerInfoSet> for PrisonerStateTranslate{
     }
 }
 
-impl ActionTensor for ClassicAction {
-    fn to_tensor(&self) -> Tensor {
-        match self{
-            Defect => Tensor::from_slice(&[0.0f32;1]),
-            Cooperate => Tensor::from_slice(&[1.0f32;1])
-        }
-    }
+ */
 
 
-    /// ```
-    /// use amfi_classic::domain::ClassicAction;
-    /// use amfi_classic::domain::ClassicAction::Cooperate;
-    /// use tch::Tensor;
-    /// use amfi_rl::tensor_repr::ActionTensor;
-    /// let t = Tensor::from_slice(&[1i64;1]);
-    /// let action = ClassicAction::try_from_tensor(&t).unwrap();
-    /// assert_eq!(action, Cooperate);
-    /// ```
-    fn try_from_tensor(t: &Tensor) -> Result<Self, ConvertError> {
-
-
-        let v: Vec<i64> = match Vec::try_from(t){
-            Ok(v) => v,
-            Err(_) =>{
-                return Err(ConvertError::ActionDeserialize(format!("{}", t)))
-            }
-        };
-        match v[0]{
-            0 => Ok(Defect),
-            1 => Ok(Cooperate),
-            _ => Err(ConvertError::ActionDeserialize(format!("{}", t)))
-        }
-    }
-}
 
 #[derive(Default)]
 pub struct PrisonerInfoSetWay{}
 const PRISONER_INFOSET_SHAPE: [i64;1] = [512];
-impl WayToTensor for PrisonerInfoSetWay{
+impl ConversionToTensor for PrisonerInfoSetWay{
     fn desired_shape(&self) -> &'static [i64] {
         &PRISONER_INFOSET_SHAPE[..]
     }

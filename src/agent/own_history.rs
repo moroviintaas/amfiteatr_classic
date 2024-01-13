@@ -5,7 +5,7 @@ use tch::Tensor;
 use amfi_core::agent::{InformationSet, PresentPossibleActions, EvaluatedInformationSet};
 use amfi_core::domain::{Renew};
 use amfi_rl::error::TensorRepresentationError;
-use amfi_rl::tensor_repr::{ConvertToTensor, WayToTensor};
+use amfi_rl::tensor_data::{ConvertToTensor, ConversionToTensor};
 use crate::agent::{ActionCounter, AgentAssessmentClasic};
 use crate::AsymmetricRewardTableInt;
 use crate::domain::{AgentNum, AsUsize, ClassicAction, ClassicGameDomain, ClassicGameError, ClassicGameUpdate, EncounterReport, UsizeAgentId};
@@ -160,7 +160,7 @@ impl OwnHistoryTensorRepr{
 
 
 
-impl WayToTensor for OwnHistoryTensorRepr{
+impl ConversionToTensor for OwnHistoryTensorRepr{
     fn desired_shape(&self) -> &[i64] {
         &self.shape[..]
     }
