@@ -14,6 +14,8 @@ use crate::env::PairingVec;
 use crate::{AsymmetricRewardTable, Side};
 use crate::domain::ClassicAction::{Down, Up};
 
+/// Trait to implement for types that can be represented as usize.
+/// > Here it will be used for Agents that can be identified with variants of enum map or numbers.
 pub trait AsUsize: Serialize{
     fn as_usize(&self) -> usize;
     fn make_from_usize(u: usize) -> Self;
@@ -29,14 +31,8 @@ impl AsUsize for AgentNum{
         u as AgentNum
     }
 }
-/*
-impl<T: Enum + Copy> AsUsize for T{
-    fn as_usize(&self) -> usize {
-        self.into_usize()
-    }
-}
 
- */
+/// This is marker for agent identifier, it will be automatically added if super traits are met.
 pub trait UsizeAgentId: AgentIdentifier + AsUsize + Copy + Serialize{}
 impl<T: AsUsize + AgentIdentifier + Copy + Serialize> UsizeAgentId for T{
 
@@ -124,8 +120,8 @@ impl Display for ClassicAction {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         if f.alternate(){
             match self{
-                ClassicAction::Up => write!(f, "B"),
-                ClassicAction::Down => write!(f, "C")
+                ClassicAction::Up => write!(f, "Up"),
+                ClassicAction::Down => write!(f, "Down")
             }
         } else{
             write!(f, "{:?}", self)
@@ -172,7 +168,7 @@ impl ActionTensor for ClassicAction {
     }
 }
 
-
+/// Enumeration of errors that could happen in this classic game model (so far).
 #[derive(thiserror::Error, Debug, PartialEq, Clone)]
 pub enum ClassicGameError<ID: AgentIdentifier> {
     #[error("Performed different action (chosen: {chosen:?}, logged: {logged:?})")]
@@ -213,12 +209,18 @@ impl<ID: UsizeAgentId> From<ClassicGameError<ID>> for AmfiError<ClassicGameDomai
     }
 }
 
-
+/// Game domain for classic theory games. Generic parameter is for agent id, because one may
+/// want to make model with agent named by enum variants or by unique numbers.
 #[derive(Clone, Debug, Serialize)]
 pub struct ClassicGameDomain<ID: AgentIdentifier>{
     _id: PhantomData<ID>
 }
 
+/// Represents outcome of single encounter, meant to be individual for one player.
+/// > Consider player _1_ met player _2_, at some point of game. Both players make some action.
+/// Then for both players there is constructed report of this encounter stating what actions where
+/// played, what was the id of opponent, and on which side player were set (side does not matter if
+/// reward table is symmetric).
 #[derive(Debug, Copy, Clone, Serialize)]
 pub struct EncounterReport<ID: UsizeAgentId> {
 
@@ -261,7 +263,9 @@ impl<ID: UsizeAgentId> EncounterReport<ID>{
     }
 }
 
+/// Alias for [`EncounterReport`] where agent id is [`TwoPlayersStdName`].
 pub type EncounterReportNamed = EncounterReport<TwoPlayersStdName>;
+/// Alias for [`EncounterReport`] where agent id is [`AgentNum`].
 pub type EncounterReportNumbered = EncounterReport<AgentNum>;
 
 impl<ID: UsizeAgentId> Display for EncounterReport<ID> {
@@ -273,6 +277,7 @@ impl<ID: UsizeAgentId> Display for EncounterReport<ID> {
 //impl StateUpdate for PrisonerUpdate{}
 
 //pub type PrisonerId = u8;
+/// Agent identifier for two player game (for more players it could be easier to use some numbers).
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Enum, Serialize)]
 pub enum TwoPlayersStdName {
     Alice,
@@ -306,31 +311,29 @@ impl TwoPlayersStdName {
 
 impl AgentIdentifier for TwoPlayersStdName {}
 
+
+///// Mapping structure (like EnumMap
+/*
 #[derive(Debug, Copy, Clone, Default)]
-pub struct PrisonerMap<T>{
+pub struct TwoPlayersMap<T>{
     alice_s: T,
     bob_s: T
 }
-impl<T> Display for PrisonerMap<T> where T: Display{
+
+
+
+impl<T> Display for TwoPlayersMap<T> where T: Display{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "[Alice: {} | Bob: {}]", self[Alice], self[Bob])
     }
 }
-
-impl Display for TwoPlayersStdName {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?}", self)
-    }
-}
-
-impl<T> PrisonerMap<T>{
+impl<T> TwoPlayersMap<T>{
     pub fn new(alice_s: T, bob_s: T) -> Self{
         Self{ alice_s, bob_s }
     }
 
 }
-
-impl<T> Index<TwoPlayersStdName> for PrisonerMap<T>{
+impl<T> Index<TwoPlayersStdName> for TwoPlayersMap<T>{
     type Output = T;
 
     fn index(&self, index: TwoPlayersStdName) -> &Self::Output {
@@ -341,7 +344,7 @@ impl<T> Index<TwoPlayersStdName> for PrisonerMap<T>{
     }
 }
 
-impl<T> IndexMut<TwoPlayersStdName> for PrisonerMap<T>{
+impl<T> IndexMut<TwoPlayersStdName> for TwoPlayersMap<T>{
 
     fn index_mut(&mut self, index: TwoPlayersStdName) -> &mut Self::Output {
         match index{
@@ -351,15 +354,37 @@ impl<T> IndexMut<TwoPlayersStdName> for PrisonerMap<T>{
     }
 }
 
+*/
 
+impl Display for TwoPlayersStdName {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
+
+
+
+
+/// Array of 'names' of players in two player game: Alice and Bob.
 pub const TWO_PLAYERS_STD_NAMED:[TwoPlayersStdName;2] = [TwoPlayersStdName::Alice, TwoPlayersStdName::Bob];
 
+/// Standard reward that is signed integer.
 pub type IntReward = i64;
 
 
+
+/// Classic game update for agent to apply
 #[derive(Debug, Clone, Serialize)]
 pub struct ClassicGameUpdate<ID: UsizeAgentId>{
+    /// Information about encounters in this round.
+    /// > This may change in the future but now update consists of encounter report for every player
+    /// so the receiving agent can observe how the game looked for other players (not matched with
+    /// him at this round). Suppose the agent with `id = 5` is interested only in report for him self
+    /// he addressed only this field in vector: `encounter.as_ref()[5]`. In two player game
+    /// this vector will have two elements - first regarding first player and second by analogy.
     pub encounters: Arc<Vec<EncounterReport<ID>>>,
+    /// Optionally environment can inform agent with whom he was paired for this round.
     pub pairing:  Option<Arc<PairingVec<ID>>>
 }
 
@@ -370,5 +395,7 @@ impl<ID: UsizeAgentId> DomainParameters for ClassicGameDomain<ID> {
     type AgentId = ID;
     type UniversalReward = IntReward;
 }
-pub type ClassicGameDomainNamed = ClassicGameDomain<TwoPlayersStdName>;
+/// Alias for [`ClassicGameDomain`] using two named players.
+pub type ClassicGameDomainTwoPlayersNamed = ClassicGameDomain<TwoPlayersStdName>;
+/// Alias for [`ClassicGameDomain`] numbered players.
 pub type ClassicGameDomainNumbered = ClassicGameDomain<AgentNum>;
