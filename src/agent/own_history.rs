@@ -6,23 +6,25 @@ use amfi_core::agent::{InformationSet, PresentPossibleActions, EvaluatedInformat
 use amfi_core::domain::{Renew};
 use amfi_rl::error::TensorRepresentationError;
 use amfi_rl::tensor_data::{ConvertToTensor, ConversionToTensor};
-use crate::agent::{ActionCounter, AgentAssessmentClasic};
+use crate::agent::{ActionPairMapper, AgentAssessmentClassic};
 use crate::AsymmetricRewardTableInt;
 use crate::domain::{AgentNum, AsUsize, ClassicAction, ClassicGameDomain, ClassicGameError, ClassicGameUpdate, EncounterReport, UsizeAgentId};
-use crate::domain::ClassicAction::{Cooperate, Defect};
+use crate::domain::ClassicAction::{Down, Up};
 use crate::Side::Left;
 
+
+/// Information set for agent collecting previous encounter [`reports`](EncounterReport)
 #[derive(Clone, Debug, Serialize)]
-pub struct OwnHistoryInfoSet<ID: UsizeAgentId>{
+pub struct LocalHistoryInfoSet<ID: UsizeAgentId>{
     id: ID,
     previous_encounters: Vec<EncounterReport<ID>>,
     reward_table: AsymmetricRewardTableInt,
-    count_actions: ActionCounter<i64>,
+    count_actions: ActionPairMapper<i64>,
     cache_table_payoff: i64,
 
 }
 
-impl<ID: UsizeAgentId> OwnHistoryInfoSet<ID>{
+impl<ID: UsizeAgentId> LocalHistoryInfoSet<ID>{
 
     pub fn new(id: ID, reward_table: AsymmetricRewardTableInt) -> Self{
         Self{id, reward_table, previous_encounters: Default::default(), count_actions: Default::default(),
@@ -31,7 +33,7 @@ impl<ID: UsizeAgentId> OwnHistoryInfoSet<ID>{
 
     pub fn reset(&mut self){
         self.previous_encounters.clear();
-        self.count_actions = ActionCounter::zero();
+        self.count_actions = ActionPairMapper::zero();
         self.cache_table_payoff = 0;
     }
 
@@ -49,12 +51,12 @@ impl<ID: UsizeAgentId> OwnHistoryInfoSet<ID>{
             e.other_player_action == action
         }).count()
     }
-    pub fn action_counter(&self) -> &ActionCounter<i64>{
+    pub fn action_counter(&self) -> &ActionPairMapper<i64>{
         &self.count_actions
     }
 }
 
-impl<ID: UsizeAgentId> Display for OwnHistoryInfoSet<ID> {
+impl<ID: UsizeAgentId> Display for LocalHistoryInfoSet<ID> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "Simple HistoryInfoSet:: Agent: {}, Rounds: {} \n", self.id, self.previous_encounters.len())?;
         /*let mut s = self.previous_encounters.iter().fold(String::new(), |mut acc, update| {
@@ -71,10 +73,10 @@ impl<ID: UsizeAgentId> Display for OwnHistoryInfoSet<ID> {
                     )?;
         }
         write!(f, "Current table payoff: {}.\t", self.cache_table_payoff,)?;
-        write!(f, "Previous observations: (c-c: {}, c-d: {}, d-c: {}, d-d: {})\n", self.count_actions[Cooperate][Cooperate],
-                    self.count_actions[Cooperate][Defect],
-                    self.count_actions[Defect][Cooperate],
-                    self.count_actions[Defect][Defect])?;
+        write!(f, "Previous observations: (c-c: {}, c-d: {}, d-c: {}, d-d: {})\n", self.count_actions[Down][Down],
+               self.count_actions[Down][Up],
+               self.count_actions[Up][Down],
+               self.count_actions[Up][Up])?;
         write!(f, "")
     }
 }
@@ -97,7 +99,7 @@ impl InformationSet<ClassicGameDomainNumbered> for OwnHistoryInfoSetNumbered{
 
  */
 
-impl<ID: UsizeAgentId> InformationSet<ClassicGameDomain<ID>> for OwnHistoryInfoSet<ID> {
+impl<ID: UsizeAgentId> InformationSet<ClassicGameDomain<ID>> for LocalHistoryInfoSet<ID> {
     fn agent_id(&self) -> &ID {
         &self.id
     }
@@ -110,13 +112,13 @@ impl<ID: UsizeAgentId> InformationSet<ClassicGameDomain<ID>> for OwnHistoryInfoS
 
         let report = update.encounters[self.id.as_usize()];
         match report.own_action  {
-            Cooperate => match report.other_player_action{
-                Defect => self.count_actions[Cooperate][Defect] += 1,
-                Cooperate => self.count_actions[Cooperate][Cooperate] += 1,
+            Down => match report.other_player_action{
+                Up => self.count_actions[Down][Up] += 1,
+                Down => self.count_actions[Down][Down] += 1,
             },
-            Defect => match report.other_player_action{
-                Defect => self.count_actions[Defect][Defect] += 1,
-                Cooperate => self.count_actions[Defect][Cooperate] += 1,
+            Up => match report.other_player_action{
+                Up => self.count_actions[Up][Up] += 1,
+                Down => self.count_actions[Up][Down] += 1,
             },
         }
         self.previous_encounters.push(report);
@@ -141,18 +143,21 @@ impl<ID: UsizeAgentId> ScoringInformationSet<ClassicGameDomain<ID>> for OwnHisto
 }
 
  */
-
+/// Represents way how information set should be represented as tensor including information about
+/// previous action made by player and enemy.
 #[derive(Copy, Clone, Debug, Default)]
-pub struct OwnHistoryTensorRepr{
+pub struct LocalHistoryConversionToTensor {
     shape: [i64; 2]
 }
 
-impl OwnHistoryTensorRepr{
+impl LocalHistoryConversionToTensor {
     pub fn new(number_of_rounds: usize) -> Self{
         Self{
             shape: [2, number_of_rounds as i64]
         }
     }
+    /// Returns expected shape of tensor which is `[2, number_of_rounds]`.
+    /// Two rows to store own action in first and enemy action in second
     pub fn shape(&self) -> &[i64]{
         &self.shape[..]
     }
@@ -160,16 +165,17 @@ impl OwnHistoryTensorRepr{
 
 
 
-impl ConversionToTensor for OwnHistoryTensorRepr{
+impl ConversionToTensor for LocalHistoryConversionToTensor {
     fn desired_shape(&self) -> &[i64] {
         &self.shape[..]
     }
 }
 
-pub type OwnHistoryInfoSetNumbered = OwnHistoryInfoSet<AgentNum>;
+/// Alias for info set for agents identified by `u32`.
+pub type LocalHistoryInfoSetNumbered = LocalHistoryInfoSet<AgentNum>;
 
-impl<ID: UsizeAgentId> ConvertToTensor<OwnHistoryTensorRepr> for OwnHistoryInfoSet<ID>{
-    fn try_to_tensor(&self, way: &OwnHistoryTensorRepr) -> Result<Tensor, TensorRepresentationError> {
+impl<ID: UsizeAgentId> ConvertToTensor<LocalHistoryConversionToTensor> for LocalHistoryInfoSet<ID>{
+    fn try_to_tensor(&self, way: &LocalHistoryConversionToTensor) -> Result<Tensor, TensorRepresentationError> {
         let max_number_of_actions = way.shape()[1];
         if self.previous_encounters.len() > max_number_of_actions as usize{
             return Err(TensorRepresentationError::InfoSetNotFit {
@@ -196,25 +202,25 @@ impl<ID: UsizeAgentId> ConvertToTensor<OwnHistoryTensorRepr> for OwnHistoryInfoS
     }
 }
 
-impl<ID: UsizeAgentId> PresentPossibleActions<ClassicGameDomain<ID>> for OwnHistoryInfoSet<ID>{
+impl<ID: UsizeAgentId> PresentPossibleActions<ClassicGameDomain<ID>> for LocalHistoryInfoSet<ID>{
     type ActionIteratorType = [ClassicAction;2];
 
     fn available_actions(&self) -> Self::ActionIteratorType {
-        [ClassicAction::Cooperate, ClassicAction::Defect]
+        [ClassicAction::Down, ClassicAction::Up]
     }
 }
 
-impl<ID: UsizeAgentId> Renew<()> for OwnHistoryInfoSet<ID>{
+impl<ID: UsizeAgentId> Renew<()> for LocalHistoryInfoSet<ID>{
     fn renew_from(&mut self, _base: ()) {
         self.previous_encounters.clear();
         self.cache_table_payoff = 0;
-        self.count_actions = ActionCounter::zero();
+        self.count_actions = ActionPairMapper::zero();
     }
 }
 
 
-impl<ID: UsizeAgentId> EvaluatedInformationSet<ClassicGameDomain<ID>,> for OwnHistoryInfoSet<ID>{
-    type RewardType = AgentAssessmentClasic<i64>;
+impl<ID: UsizeAgentId> EvaluatedInformationSet<ClassicGameDomain<ID>,> for LocalHistoryInfoSet<ID>{
+    type RewardType = AgentAssessmentClassic<i64>;
 
     fn current_subjective_score(&self) -> Self::RewardType {
 
@@ -222,33 +228,33 @@ impl<ID: UsizeAgentId> EvaluatedInformationSet<ClassicGameDomain<ID>,> for OwnHi
         if self.previous_encounters.len() >=2{
             for i in 0..(self.previous_encounters.len()-1){
 
-                if self.previous_encounters[i].other_player_action == Defect
-                    && self.previous_encounters[i+1].own_action == Defect{
+                if self.previous_encounters[i].other_player_action == Up
+                    && self.previous_encounters[i+1].own_action == Up {
                     edu_asses += 0.1;
                 }
-                if self.previous_encounters[i].other_player_action == Cooperate
-                    && self.previous_encounters[i+1].own_action == Cooperate{
+                if self.previous_encounters[i].other_player_action == Down
+                    && self.previous_encounters[i+1].own_action == Down {
                     edu_asses += 1.0 +
-                        (self.reward_table.reward_for_side(Left, Defect, Cooperate)
-                            - self.reward_table.reward_for_side(Left, Cooperate, Cooperate)) as f32;
+                        (self.reward_table.reward_for_side(Left, Up, Down)
+                            - self.reward_table.reward_for_side(Left, Down, Down)) as f32;
                 }
             }
         }
 
         if let Some(prev) = self.previous_encounters.last(){
-            if prev.own_action == Cooperate && prev.other_player_action == Cooperate{
+            if prev.own_action == Down && prev.other_player_action == Down {
                  edu_asses += 1.0 +
-                        (self.reward_table.reward_for_side(Left, Defect, Cooperate)
-                            - self.reward_table.reward_for_side(Left, Cooperate, Cooperate)) as f32;
+                        (self.reward_table.reward_for_side(Left, Up, Down)
+                            - self.reward_table.reward_for_side(Left, Down, Down)) as f32;
             }
         }
 
 
-        AgentAssessmentClasic::new(self.cache_table_payoff, self.count_actions, edu_asses)
+        AgentAssessmentClassic::new(self.cache_table_payoff, self.count_actions, edu_asses)
     }
 
     fn penalty_for_illegal(&self) -> Self::RewardType {
-        AgentAssessmentClasic::with_only_table_payoff(-100)
+        AgentAssessmentClassic::with_only_table_payoff(-100)
     }
 }
 

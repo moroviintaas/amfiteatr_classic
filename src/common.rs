@@ -3,6 +3,8 @@ use amfi_core::domain::Reward;
 use enum_map::{Enum, enum_map, EnumMap};
 use crate::domain::{ClassicAction, IntReward};
 
+/// Enum for representing on which side of encounter is player.
+/// This is important for [`AsymmetricRewardTable`]
 #[derive(Debug, Copy, Clone, Enum, Serialize, Deserialize)]
 pub enum Side{
     Left,
@@ -15,6 +17,20 @@ impl Default for Side{
     }
 }
 
+/// This is reward table for games where it is not important on what side the player is.
+/// > The reward table would look like this:
+/// ```norust
+///  --------------------
+/// |      |  Up  | Down |
+/// |--------------------
+/// |  Up  |    A |    B |
+/// |      | A    | C    |
+/// |--------------------|
+/// | Down |    C |    D |
+/// |      | B    | D    |
+///  --------------------
+/// ```
+/// Note that you only need 4 numbers to define this table (compare to [`AsymmetricRewardTable`]).
 #[derive(Debug, Clone, Serialize, Deserialize, Copy)]
 pub struct SymmetricRewardTable<R: Reward + Copy> {
 
@@ -25,7 +41,7 @@ pub struct SymmetricRewardTable<R: Reward + Copy> {
     //pub defect_when_coop: R,
     //pub defect_when_defect: R
 }
-
+/// Alias for [`SymmetricRewardTable`] using `i64`
 pub type SymmetricRewardTableInt = SymmetricRewardTable<IntReward>;
 
 
@@ -34,13 +50,13 @@ impl<R: Reward + Copy> SymmetricRewardTable<R> {
     pub fn new(coop_when_coop: R, coop_when_defect: R, defect_when_coop: R, defect_when_defect: R) -> Self{
         Self{
             map: enum_map! {
-                ClassicAction::Defect => enum_map! {
-                    ClassicAction::Defect => defect_when_defect,
-                    ClassicAction::Cooperate => defect_when_coop,
+                ClassicAction::Up => enum_map! {
+                    ClassicAction::Up => defect_when_defect,
+                    ClassicAction::Down => defect_when_coop,
                 },
-                ClassicAction::Cooperate => enum_map! {
-                    ClassicAction::Defect => coop_when_defect,
-                    ClassicAction::Cooperate => coop_when_coop,
+                ClassicAction::Down => enum_map! {
+                    ClassicAction::Up => coop_when_defect,
+                    ClassicAction::Down => coop_when_coop,
                 }
             }
         }
@@ -61,13 +77,30 @@ impl<R: Reward + Copy> SymmetricRewardTable<R> {
 
 }
 
-
+/// This is reward table for games where it is important on what side the player is.
+/// > May be used for games that has asymmetric tables - if two players switched certain action it
+/// may not necessarily need to reverted payoffs.
+/// The reward table would look like this:
+/// ```norust
+///  --------------------
+/// |      |  Up  | Down |
+/// |--------------------
+/// |  Up  |    A |    C |
+/// |      | B    | D    |
+/// |--------------------|
+/// | Down |    E |    F |
+/// |      | G    | H    |
+///  --------------------
+/// ```
+/// Note that `E` can differ from `D`, like `C` and `G`.
+///
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 pub struct AsymmetricRewardTable<R: Reward + Copy>{
 
     table: EnumMap<Side, SymmetricRewardTable<R>>
 }
 
+/// Alias for [`AsymmetricRewardTable`] using `i64`
 pub type AsymmetricRewardTableInt = AsymmetricRewardTable<IntReward>;
 
 impl<R: Reward + Copy> AsymmetricRewardTable<R> {
@@ -100,10 +133,10 @@ impl<R: Reward + Copy> AsymmetricRewardTable<R> {
 impl<R: Reward + Copy> From<SymmetricRewardTable<R>> for AsymmetricRewardTable<R>{
     fn from(value: SymmetricRewardTable<R>) -> Self {
         let mut reverted = value.clone();
-        reverted.map[ClassicAction::Cooperate][ClassicAction::Defect] =
-            value.map[ClassicAction::Defect][ClassicAction::Cooperate];
-        reverted.map[ClassicAction::Defect][ClassicAction::Cooperate] =
-            value.map[ClassicAction::Cooperate][ClassicAction::Defect];
+        reverted.map[ClassicAction::Down][ClassicAction::Up] =
+            value.map[ClassicAction::Up][ClassicAction::Down];
+        reverted.map[ClassicAction::Up][ClassicAction::Down] =
+            value.map[ClassicAction::Down][ClassicAction::Up];
 
         AsymmetricRewardTable::new(value, reverted)
     }

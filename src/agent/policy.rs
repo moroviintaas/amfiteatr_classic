@@ -1,14 +1,17 @@
 use std::fmt::{Debug, Formatter};
 use amfi_core::agent::Policy;
-use crate::agent::OwnHistoryInfoSet;
-use crate::domain::ClassicAction::{Cooperate, Defect};
+use crate::agent::LocalHistoryInfoSet;
+use crate::domain::ClassicAction::{Down, Up};
 use crate::domain::{ClassicAction, ClassicGameDomain, UsizeAgentId};
 
+
+/// Uses last action that enemy used two times in the row, if no such action is found start with
+/// [`Down`].
 pub struct SwitchAfterTwo{
 }
 
 impl<ID: UsizeAgentId> Policy<ClassicGameDomain<ID>> for SwitchAfterTwo{
-    type InfoSetType = OwnHistoryInfoSet<ID>;
+    type InfoSetType = LocalHistoryInfoSet<ID>;
 
     fn select_action(&self, state: &Self::InfoSetType) -> Option<ClassicAction> {
 
@@ -21,42 +24,46 @@ impl<ID: UsizeAgentId> Policy<ClassicGameDomain<ID>> for SwitchAfterTwo{
                     other_action = state.previous_encounters()[i].other_player_action;
                 }
             }
-            Some(Cooperate)
+            Some(Down)
         } else {
-            Some(Cooperate)
+            Some(Down)
         }
     }
 }
-
+/// Example strategy that prefers action [`Down`], but punishes action [`Up`] with response of [`Up`].
+/// Policy forgives previous [`Up`]s after to subsequent [`Down`]s from enemy.
 pub struct ForgiveAfterTwo{
 }
 
 
 impl<ID: UsizeAgentId> Policy<ClassicGameDomain<ID>> for ForgiveAfterTwo{
-    type InfoSetType = OwnHistoryInfoSet<ID>;
+    type InfoSetType = LocalHistoryInfoSet<ID>;
 
     fn select_action(&self, state: &Self::InfoSetType) -> Option<ClassicAction> {
 
         if let Some(_last_report) = state.previous_encounters().last(){
             let mut subsequent_coops = 0;
             for i in (0..state.previous_encounters().len()).rev(){
-                if state.previous_encounters()[i].other_player_action == Defect{
-                    return Some(Defect)
+                if state.previous_encounters()[i].other_player_action == Up {
+                    return Some(Up)
                 } else {
                     subsequent_coops += 1;
                     if subsequent_coops >= 2{
-                        return Some(Cooperate)
+                        return Some(Down)
                     }
                 }
             }
-            Some(Cooperate)
+            Some(Down)
         } else {
-            Some(Cooperate)
+            Some(Down)
         }
     }
 }
 
-
+/// Example strategy that prefers action [`Down`], but punishes certain actions of [`Up`] with action
+/// of [`Up`]. To forgive and start using [`Down`] once more, other player must use action [`Down`]
+/// at lest _Fib(x)_ where _Fib_ is Fibonacci function and _x_ is the number of [`Down`].
+/// It is approach to make further forgiveness more difficult to achieve.
 #[derive(Clone, Default)]
 pub struct FibonacciForgiveStrategy{
 }
@@ -93,18 +100,18 @@ fn fibonacci(index: u64) -> u64{
 
 
 impl<ID: UsizeAgentId> Policy<ClassicGameDomain<ID>> for FibonacciForgiveStrategy{
-    type InfoSetType = OwnHistoryInfoSet<ID>;
+    type InfoSetType = LocalHistoryInfoSet<ID>;
 
     fn select_action(&self, state: &Self::InfoSetType) -> Option<ClassicAction> {
 
-        let enemy_defects = state.count_actions_other(Defect) as u64;
-        let enemy_coops = state.count_actions_other(Cooperate) as u64;
+        let enemy_defects = state.count_actions_other(Up) as u64;
+        let enemy_coops = state.count_actions_other(Down) as u64;
 
         let penalty = fibonacci(enemy_defects);
         if penalty > enemy_coops{
-            Some(Defect)
+            Some(Up)
         } else {
-            Some(Cooperate)
+            Some(Down)
         }
 
 

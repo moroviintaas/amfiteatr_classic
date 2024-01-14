@@ -4,7 +4,7 @@ use rand::{Rng, thread_rng};
 use amfi_core::agent::{InformationSet, Policy};
 
 use crate::domain::{ClassicAction, ClassicGameDomain, ClassicGameError, UsizeAgentId};
-use crate::domain::ClassicAction::{Cooperate, Defect};
+use crate::domain::ClassicAction::{Down, Up};
 
 pub struct ClassicPureStrategy<ID: UsizeAgentId, IS: InformationSet<ClassicGameDomain<ID>>>{
     pub action: ClassicAction,
@@ -63,9 +63,9 @@ impl<ID: UsizeAgentId, IS: InformationSet<ClassicGameDomain<ID>>> Policy<Classic
         let sample = rng.gen_range(0.0..1.0);
         sample.partial_cmp(&self.probability_defect).and_then(|o|{
           match o{
-              Ordering::Less => Some(Defect),
-              Ordering::Equal => Some(Cooperate),
-              Ordering::Greater => Some(Cooperate),
+              Ordering::Less => Some(Up),
+              Ordering::Equal => Some(Down),
+              Ordering::Greater => Some(Down),
           }
         })
 

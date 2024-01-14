@@ -9,10 +9,10 @@ use enum_map::Enum;
 use serde::{Deserialize, Serialize};
 use tch::Tensor;
 use amfi_rl::tensor_data::ActionTensor;
-use crate::domain::PrisonerId::{Alice, Bob};
+use crate::domain::TwoPlayersStdName::{Alice, Bob};
 use crate::env::PairingVec;
 use crate::{AsymmetricRewardTable, Side};
-use crate::domain::ClassicAction::{Cooperate, Defect};
+use crate::domain::ClassicAction::{Down, Up};
 
 pub trait AsUsize: Serialize{
     fn as_usize(&self) -> usize;
@@ -42,11 +42,72 @@ impl<T: AsUsize + AgentIdentifier + Copy + Serialize> UsizeAgentId for T{
 
 }
 
+/// Choice from two possible actions in simple classic game.
+/// In different problems and different papers they are differently called.
+/// In prisoners' dilemma the can be referenced as as _Defect_ and _Cooperate_.
+/// In chicken game they are commonly named _Hawk_ and _Dove_.
+/// Often one can be described as _Aggressive_ and other as _Passive_, (or _Selfish_ and _Caring_).
+/// In some games however such description does not make sense, for example in
+/// [battle of sexes](https://en.wikipedia.org/wiki/Battle_of_the_sexes_(game_theory)).
+/// This semantic inconsistency problem will be better addressed in the future, for now
+/// it is advised to make note which variant represents which action.
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Enum, Serialize, Deserialize)]
 pub enum ClassicAction {
-    Defect,
-    Cooperate
+    Up,
+    Down
 }
+
+impl ClassicAction{
+    /// Represent variants in prisoner game (Up -> Defect, Down -> Cooperate)
+    pub fn str_prisoner(&self) -> &'static str{
+        match self {
+            Up => "Defect",
+            Down => "Cooperate"
+        }
+    }
+    /// Represent variants in chicken game (Up -> Hawk, Down -> Down)
+    pub fn str_chicken(&self) -> &'static str{
+        match self {
+            Up => "Hawk",
+            Down => "Dove"
+        }
+    }
+    /// Represent variants in battle of sexes game (Up -> Fight, Down -> Ballet)
+    pub fn str_sexes(&self) -> &'static str{
+        match self {
+            Up => "Hawk",
+            Down => "Dove"
+        }
+    }
+}
+#[allow(non_upper_case_globals)]
+/// Alias for prisoner's defect
+pub const Defect: ClassicAction = Up;
+
+
+//#[allow(non_upper_case_globals)]
+//pub const Aggressive: ClassicAction = Up;
+/// Alias for kindness definition of action Up
+#[allow(non_upper_case_globals)]
+pub const Selfish: ClassicAction = Up;
+/// Alias for battle of sexes Up action
+#[allow(non_upper_case_globals)]
+pub const Fight: ClassicAction = Up;
+
+
+/// Alias for prisoner's cooperate
+#[allow(non_upper_case_globals)]
+pub const Cooperate: ClassicAction = Down;
+//#[allow(non_upper_case_globals)]
+//pub const Passive: ClassicAction = Down;
+/// Alias for kindness definition of action Down
+#[allow(non_upper_case_globals)]
+pub const Caring: ClassicAction = Down;
+/// Alias for battle of sexes Down action
+#[allow(non_upper_case_globals)]
+pub const Ballet: ClassicAction = Down;
+
+
 
 impl AsUsize for ClassicAction{
     fn as_usize(&self) -> usize {
@@ -63,8 +124,8 @@ impl Display for ClassicAction {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         if f.alternate(){
             match self{
-                ClassicAction::Defect => write!(f, "B"),
-                ClassicAction::Cooperate => write!(f, "C")
+                ClassicAction::Up => write!(f, "B"),
+                ClassicAction::Down => write!(f, "C")
             }
         } else{
             write!(f, "{:?}", self)
@@ -79,20 +140,20 @@ impl Action for ClassicAction {}
 impl ActionTensor for ClassicAction {
     fn to_tensor(&self) -> Tensor {
         match self{
-            Defect => Tensor::from_slice(&[0.0f32;1]),
-            Cooperate => Tensor::from_slice(&[1.0f32;1])
+            Up => Tensor::from_slice(&[0.0f32;1]),
+            Down => Tensor::from_slice(&[1.0f32;1])
         }
     }
 
 
     /// ```
     /// use amfi_classic::domain::ClassicAction;
-    /// use amfi_classic::domain::ClassicAction::Cooperate;
+    /// use amfi_classic::domain::ClassicAction::Down;
     /// use tch::Tensor;
     /// use amfi_rl::tensor_data::ActionTensor;
     /// let t = Tensor::from_slice(&[1i64;1]);
     /// let action = ClassicAction::try_from_tensor(&t).unwrap();
-    /// assert_eq!(action, Cooperate);
+    /// assert_eq!(action, Down);
     /// ```
     fn try_from_tensor(t: &Tensor) -> Result<Self, ConvertError> {
 
@@ -105,7 +166,7 @@ impl ActionTensor for ClassicAction {
         };
         match v[0]{
             0 => Ok(Defect),
-            1 => Ok(Cooperate),
+            1 => Ok(Down),
             _ => Err(ConvertError::ActionDeserialize(format!("{}", t)))
         }
     }
@@ -200,7 +261,7 @@ impl<ID: UsizeAgentId> EncounterReport<ID>{
     }
 }
 
-pub type EncounterReportNamed = EncounterReport<PrisonerId>;
+pub type EncounterReportNamed = EncounterReport<TwoPlayersStdName>;
 pub type EncounterReportNumbered = EncounterReport<AgentNum>;
 
 impl<ID: UsizeAgentId> Display for EncounterReport<ID> {
@@ -213,7 +274,7 @@ impl<ID: UsizeAgentId> Display for EncounterReport<ID> {
 
 //pub type PrisonerId = u8;
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash, Enum, Serialize)]
-pub enum PrisonerId{
+pub enum TwoPlayersStdName {
     Alice,
     Bob,
 
@@ -221,18 +282,18 @@ pub enum PrisonerId{
 
 
 
-impl AsUsize for PrisonerId{
+impl AsUsize for TwoPlayersStdName {
     fn as_usize(&self) -> usize {
         self.into_usize()
     }
 
     fn make_from_usize(u: usize) -> Self {
-        PrisonerId::from_usize(u)
+        TwoPlayersStdName::from_usize(u)
     }
 }
 
 
-impl PrisonerId{
+impl TwoPlayersStdName {
     pub fn other(self) -> Self{
         match self{
             Self::Alice => Bob,
@@ -243,7 +304,7 @@ impl PrisonerId{
 
 
 
-impl AgentIdentifier for PrisonerId{}
+impl AgentIdentifier for TwoPlayersStdName {}
 
 #[derive(Debug, Copy, Clone, Default)]
 pub struct PrisonerMap<T>{
@@ -256,7 +317,7 @@ impl<T> Display for PrisonerMap<T> where T: Display{
     }
 }
 
-impl Display for PrisonerId{
+impl Display for TwoPlayersStdName {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self)
     }
@@ -269,29 +330,29 @@ impl<T> PrisonerMap<T>{
 
 }
 
-impl<T> Index<PrisonerId> for PrisonerMap<T>{
+impl<T> Index<TwoPlayersStdName> for PrisonerMap<T>{
     type Output = T;
 
-    fn index(&self, index: PrisonerId) -> &Self::Output {
+    fn index(&self, index: TwoPlayersStdName) -> &Self::Output {
         match index{
-            PrisonerId::Bob => &self.bob_s,
-            PrisonerId::Alice => &self.alice_s
+            TwoPlayersStdName::Bob => &self.bob_s,
+            TwoPlayersStdName::Alice => &self.alice_s
         }
     }
 }
 
-impl<T> IndexMut<PrisonerId> for PrisonerMap<T>{
+impl<T> IndexMut<TwoPlayersStdName> for PrisonerMap<T>{
 
-    fn index_mut(&mut self, index: PrisonerId) -> &mut Self::Output {
+    fn index_mut(&mut self, index: TwoPlayersStdName) -> &mut Self::Output {
         match index{
-            PrisonerId::Bob => &mut self.bob_s,
-            PrisonerId::Alice => &mut self.alice_s
+            TwoPlayersStdName::Bob => &mut self.bob_s,
+            TwoPlayersStdName::Alice => &mut self.alice_s
         }
     }
 }
 
 
-pub const PRISONERS:[PrisonerId;2] = [PrisonerId::Alice, PrisonerId::Bob];
+pub const TWO_PLAYERS_STD_NAMED:[TwoPlayersStdName;2] = [TwoPlayersStdName::Alice, TwoPlayersStdName::Bob];
 
 pub type IntReward = i64;
 
@@ -309,5 +370,5 @@ impl<ID: UsizeAgentId> DomainParameters for ClassicGameDomain<ID> {
     type AgentId = ID;
     type UniversalReward = IntReward;
 }
-pub type ClassicGameDomainNamed = ClassicGameDomain<PrisonerId>;
+pub type ClassicGameDomainNamed = ClassicGameDomain<TwoPlayersStdName>;
 pub type ClassicGameDomainNumbered = ClassicGameDomain<AgentNum>;

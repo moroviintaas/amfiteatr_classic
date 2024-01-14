@@ -6,21 +6,23 @@ use crate::AsymmetricRewardTableInt;
 use crate::domain::{AgentNum, AsUsize, ClassicAction, ClassicGameDomain, ClassicGameDomainNumbered, ClassicGameError, IntReward};
 use crate::domain::ClassicGameError::EncounterNotReported;
 
+/// Information set of player that does not collect information about previous actions performed
+/// and observed from enemy
 #[derive(Copy, Clone, Debug)]
-pub struct HistorylessInfoSet{
+pub struct MinimalInfoSet {
     id: AgentNum,
     reward_table: AsymmetricRewardTableInt,
     payoff: IntReward
 
 }
 
-impl Display for HistorylessInfoSet{
+impl Display for MinimalInfoSet {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
         write!(f, "{:}", self.id)
     }
 }
 
-impl HistorylessInfoSet{
+impl MinimalInfoSet {
     pub fn new(id: AgentNum, reward_table: AsymmetricRewardTableInt) -> Self{
         Self{
             id, reward_table, payoff: 0
@@ -34,7 +36,7 @@ impl HistorylessInfoSet{
 
 
 
-impl InformationSet<ClassicGameDomain<AgentNum>> for HistorylessInfoSet{
+impl InformationSet<ClassicGameDomain<AgentNum>> for MinimalInfoSet {
     fn agent_id(&self) -> &AgentNum {
         &self.id
     }
@@ -62,7 +64,7 @@ impl InformationSet<ClassicGameDomain<AgentNum>> for HistorylessInfoSet{
     }
 }
 
-impl EvaluatedInformationSet<ClassicGameDomainNumbered> for HistorylessInfoSet{
+impl EvaluatedInformationSet<ClassicGameDomainNumbered> for MinimalInfoSet {
     type RewardType = IntReward;
 
     fn current_subjective_score(&self) -> Self::RewardType {
@@ -74,10 +76,10 @@ impl EvaluatedInformationSet<ClassicGameDomainNumbered> for HistorylessInfoSet{
     }
 }
 
-impl PresentPossibleActions<ClassicGameDomainNumbered> for HistorylessInfoSet{
+impl PresentPossibleActions<ClassicGameDomainNumbered> for MinimalInfoSet {
     type ActionIteratorType = [ClassicAction;2];
 
     fn available_actions(&self) -> Self::ActionIteratorType {
-        [ClassicAction::Cooperate, ClassicAction::Defect]
+        [ClassicAction::Down, ClassicAction::Up]
     }
 }
