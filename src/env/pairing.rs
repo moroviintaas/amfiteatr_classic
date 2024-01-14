@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
@@ -244,17 +245,17 @@ impl<ID: UsizeAgentId> EnvironmentStateSequential<ClassicGameDomain<ID>> for Pai
 
 
 
-                    let encounters_vec: Vec<EncounterReport<ID>> = (0..self.actual_pairings.len())
+                    let encounters_vec: HashMap<ID, EncounterReport<ID>> = (0..self.actual_pairings.len())
                         .into_iter().map(|i|{
                         let actual_pairing = self.actual_pairings[i];
                         let other_player = self.actual_pairings[i].paired_player;
                         //let reverse_pairing = self.actual_pairings[other_player.as_usize()];
-                        EncounterReport{
+                        (ID::make_from_usize(i), EncounterReport{
                             own_action: self.actual_pairings[i].taken_action.unwrap(),
                             other_player_action: self.actual_pairings[other_player.as_usize()].taken_action.unwrap(),
                             side: actual_pairing.side,
                             other_id: other_player,
-                        }
+                        })
                     }).collect();
                     let encounters = Arc::new(encounters_vec);
 
@@ -298,7 +299,7 @@ impl<ID: UsizeAgentId> EnvironmentStateSequential<ClassicGameDomain<ID>> for Pai
     }
 }
 
-impl<ID: UsizeAgentId> EnvironmentStateUniScore<ClassicGameDomain<ID>> for PairingState<ID>{
+impl<ID: UsizeAgentId> EnvironmentStateUniScore<ClassicGameDomain<ID>> for PairingState<ID> {
     fn state_score_of_player(&self, agent: &ID) -> IntReward {
         self.score_cache[agent.as_usize()]
     }

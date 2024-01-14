@@ -3,7 +3,7 @@ use amfi_core::domain::DomainParameters;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use crate::AsymmetricRewardTableInt;
-use crate::domain::{AgentNum, AsUsize, ClassicAction, ClassicGameDomain, ClassicGameDomainNumbered, ClassicGameError, IntReward};
+use crate::domain::{AgentNum, ClassicAction, ClassicGameDomain, ClassicGameDomainNumbered, ClassicGameError, IntReward};
 use crate::domain::ClassicGameError::EncounterNotReported;
 
 /// Information set of player that does not collect information about previous actions performed
@@ -47,7 +47,7 @@ impl InformationSet<ClassicGameDomain<AgentNum>> for MinimalInfoSet {
 
     fn update(&mut self, update: <ClassicGameDomainNumbered as DomainParameters>::UpdateType) -> Result<(), ClassicGameError<AgentNum>> {
 
-        if let Some(this_encounter_report) = update.encounters.get(self.id.as_usize()){
+        if let Some(this_encounter_report) = update.encounters.get(&self.id){
             let reward = self.reward_table
                 .reward_for_side(this_encounter_report.side, this_encounter_report.left_action(), this_encounter_report.right_action());
 

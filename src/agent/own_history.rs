@@ -110,7 +110,7 @@ impl<ID: UsizeAgentId> InformationSet<ClassicGameDomain<ID>> for LocalHistoryInf
 
     fn update(&mut self, update: ClassicGameUpdate<ID>) -> Result<(), ClassicGameError<ID>> {
 
-        let report = update.encounters[self.id.as_usize()];
+        let report = update.encounters[&self.id];
         match report.own_action  {
             Down => match report.other_player_action{
                 Up => self.count_actions[Down][Up] += 1,

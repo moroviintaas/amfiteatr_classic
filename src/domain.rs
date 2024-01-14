@@ -1,6 +1,6 @@
+use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::marker::PhantomData;
-use std::ops::{Index, IndexMut};
 use std::sync::Arc;
 use amfi_core::agent::{AgentIdentifier};
 use amfi_core::error::{AmfiError, ConvertError};
@@ -378,12 +378,11 @@ pub type IntReward = i64;
 #[derive(Debug, Clone, Serialize)]
 pub struct ClassicGameUpdate<ID: UsizeAgentId>{
     /// Information about encounters in this round.
-    /// > This may change in the future but now update consists of encounter report for every player
-    /// so the receiving agent can observe how the game looked for other players (not matched with
-    /// him at this round). Suppose the agent with `id = 5` is interested only in report for him self
-    /// he addressed only this field in vector: `encounter.as_ref()[5]`. In two player game
-    /// this vector will have two elements - first regarding first player and second by analogy.
-    pub encounters: Arc<Vec<EncounterReport<ID>>>,
+    /// > This may change in the future but now update consists of [EncounterReport] for some players.
+    /// If model expects player to gain only his encounter report it will be HashMap with one element.
+    /// However for models with players having knowledge about other players actions this map would
+    /// contain reports for other players.
+    pub encounters: Arc<HashMap<ID, EncounterReport<ID>>>,
     /// Optionally environment can inform agent with whom he was paired for this round.
     pub pairing:  Option<Arc<PairingVec<ID>>>
 }
