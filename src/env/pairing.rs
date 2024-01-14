@@ -13,22 +13,9 @@ use crate::domain::ClassicGameError::ActionAfterGameOver;
 use crate::{AsymmetricRewardTableInt, Side};
 
 
-#[derive(Debug, Clone)]
-pub struct PairDomain;
 
-/*
-impl DomainParameters for PairDomain{
-    type ActionType = ClassicAction;
-    type GameErrorType = ClassicGameError<AgentNum>;
-    type UpdateType = Vec<(AgentNum, ClassicAction)>;
-    type AgentId = AgentNum;
-    type UniversalReward = i32;
-}
-
- */
-
-
-
+/// Structure to make note of player pairing - has information of other player, performed actions
+/// (by this player) and [`Side`] on which player was paired.
 #[derive(Copy, Clone, Debug, Default, Serialize)]
 pub struct PlayerPairing<ID: UsizeAgentId> {
     pub paired_player: ID,
@@ -50,9 +37,19 @@ impl<ID: UsizeAgentId> Display for PlayerPairing<ID>{
         }
     }
 }
-
+/// Alias for `Vec<PlayerPairing<ID>>`
 pub type PairingVec<ID> = Vec<PlayerPairing<ID>>;
 
+/// This is state of game prepared for many players and many rounds.
+/// > It follows:
+/// 1. It demands that the number of players is even.
+/// 2. For every round shuffles players and match them in pairs. Players are informed with whom they are paired.
+/// 3. Every pair makes new encounter.
+/// 4. Every player is subsequently asked to make action which is noted.
+/// 5. After all players moved, reports of every encounter is prepared and sent to all players.
+/// (Every player get complete information about all encounters, what he does with this knowledge
+/// is up to his information set implementation).
+///
 #[derive(Debug, Clone, Serialize)]
 pub struct PairingState<ID: UsizeAgentId>{
     actual_pairings: PairingVec<ID>,
@@ -66,7 +63,7 @@ pub struct PairingState<ID: UsizeAgentId>{
 
 
 }
-
+/// Alias for `PairingState<AgentNum>`
 pub type PairingStateNumbered = PairingState<AgentNum>;
 
 impl<ID: UsizeAgentId> PairingState<ID>{
