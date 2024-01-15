@@ -3,7 +3,7 @@ use std::fmt::Debug;
 use std::ops::{Add, AddAssign, Index, IndexMut, Sub};
 use enum_map::{enum_map, EnumMap};
 use serde::{Serialize};
-use amfi_core::domain::Reward;
+use amfiteatr_core::domain::Reward;
 use crate::domain::{ClassicAction, IntReward};
 use crate::domain::ClassicAction::{Down, Up};
 
@@ -20,8 +20,8 @@ pub type Level2ActionMap<T> = EnumMap<ClassicAction, Level1ActionMap<T>>;
 /// Structure to map some data to action pair (for example count number of situation where player 1
 /// used action A, and player 2 used action B)
 /// ```
-/// use amfi_classic::agent::ActionPairMapper;
-/// use amfi_classic::domain::ClassicAction::{Up, Down};
+/// use amfiteatr_classic::agent::ActionPairMapper;
+/// use amfiteatr_classic::domain::ClassicAction::{Up, Down};
 /// let mut mapper = ActionPairMapper::zero();
 /// assert_eq!(mapper[Up][Down], 0);
 /// mapper[Up][Down] = 7i64;
@@ -200,8 +200,8 @@ impl<'a, T: Copy + Clone + Debug + Sub<Output = T> + PartialEq> Sub<&'a Self> fo
 /// actions made so you can make optimization criteria to for example maximize number of encounters
 /// where both players played [`Down`](ClassicAction::Down).
 /// ```
-/// use amfi_classic::agent::AgentAssessmentClassic;
-/// use amfi_classic::domain::ClassicAction::Down;
+/// use amfiteatr_classic::agent::AgentAssessmentClassic;
+/// use amfiteatr_classic::domain::ClassicAction::Down;
 /// let preference_model: Box< dyn Fn(AgentAssessmentClassic<i64>) -> f32> = Box::new(| reward |{
 ///     reward.table_payoff() as f32 + (0.4* reward.count_actions(Down, Down) as f32)
 /// });

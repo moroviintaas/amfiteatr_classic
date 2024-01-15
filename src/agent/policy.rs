@@ -1,5 +1,5 @@
 use std::fmt::{Debug, Formatter};
-use amfi_core::agent::Policy;
+use amfiteatr_core::agent::Policy;
 use crate::agent::LocalHistoryInfoSet;
 use crate::domain::ClassicAction::{Down, Up};
 use crate::domain::{ClassicAction, ClassicGameDomain, UsizeAgentId};

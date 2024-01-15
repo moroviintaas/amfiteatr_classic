@@ -2,10 +2,10 @@ use std::fmt::{Display, Formatter};
 use log::trace;
 use serde::Serialize;
 use tch::Tensor;
-use amfi_core::agent::{InformationSet, PresentPossibleActions, EvaluatedInformationSet};
-use amfi_core::domain::{Renew};
-use amfi_rl::error::TensorRepresentationError;
-use amfi_rl::tensor_data::{ConvertToTensor, ConversionToTensor};
+use amfiteatr_core::agent::{InformationSet, PresentPossibleActions, EvaluatedInformationSet};
+use amfiteatr_core::domain::{Renew};
+use amfiteatr_rl::error::TensorRepresentationError;
+use amfiteatr_rl::tensor_data::{ConvertToTensor, ConversionToTensor};
 use crate::agent::{ActionPairMapper, AgentAssessmentClassic};
 use crate::AsymmetricRewardTableInt;
 use crate::domain::{AgentNum, AsUsize, ClassicAction, ClassicGameDomain, ClassicGameError, ClassicGameUpdate, EncounterReport, UsizeAgentId};
@@ -58,7 +58,7 @@ impl<ID: UsizeAgentId> LocalHistoryInfoSet<ID>{
 
 impl<ID: UsizeAgentId> Display for LocalHistoryInfoSet<ID> {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Simple HistoryInfoSet:: Agent: {}, Rounds: {} \n", self.id, self.previous_encounters.len())?;
+        write!(f, "Local History InfoSet:: Agent: {}, Rounds: {} \n", self.id, self.previous_encounters.len())?;
         /*let mut s = self.previous_encounters.iter().fold(String::new(), |mut acc, update| {
             acc.push_str(&format!("({:?}){:#}-{:#} #  ", update.side, update.own_action, update.other_player_action));
             acc

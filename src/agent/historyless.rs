@@ -1,5 +1,5 @@
-use amfi_core::agent::{InformationSet, PresentPossibleActions, EvaluatedInformationSet};
-use amfi_core::domain::DomainParameters;
+use amfiteatr_core::agent::{InformationSet, PresentPossibleActions, EvaluatedInformationSet};
+use amfiteatr_core::domain::DomainParameters;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use crate::AsymmetricRewardTableInt;

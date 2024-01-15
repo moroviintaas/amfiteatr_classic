@@ -1,11 +1,11 @@
 use serde::{Serialize, Deserialize};
-use amfi_core::domain::Reward;
+use amfiteatr_core::domain::Reward;
 use enum_map::{Enum, enum_map, EnumMap};
 use crate::domain::{ClassicAction, IntReward};
 
 /// Enum for representing on which side of encounter is player.
 /// This is important for [`AsymmetricRewardTable`]
-#[derive(Debug, Copy, Clone, Enum, Serialize, Deserialize)]
+#[derive(Debug, Copy, Clone, Enum, Serialize, Deserialize, speedy::Writable, speedy::Readable)]
 pub enum Side{
     Left,
     Right

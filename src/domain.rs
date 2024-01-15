@@ -2,13 +2,13 @@ use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::marker::PhantomData;
 use std::sync::Arc;
-use amfi_core::agent::{AgentIdentifier};
-use amfi_core::error::{AmfiError, ConvertError};
-use amfi_core::domain::{Action, DomainParameters, Reward};
+use amfiteatr_core::agent::{AgentIdentifier};
+use amfiteatr_core::error::{AmfiError, ConvertError};
+use amfiteatr_core::domain::{Action, DomainParameters, Reward};
 use enum_map::Enum;
 use serde::{Deserialize, Serialize};
 use tch::Tensor;
-use amfi_rl::tensor_data::ActionTensor;
+use amfiteatr_rl::tensor_data::ActionTensor;
 use crate::domain::TwoPlayersStdName::{Alice, Bob};
 use crate::env::PairingVec;
 use crate::{AsymmetricRewardTable, Side};
@@ -47,7 +47,9 @@ impl<T: AsUsize + AgentIdentifier + Copy + Serialize> UsizeAgentId for T{
 /// [battle of sexes](https://en.wikipedia.org/wiki/Battle_of_the_sexes_(game_theory)).
 /// This semantic inconsistency problem will be better addressed in the future, for now
 /// it is advised to make note which variant represents which action.
-#[derive(Copy, Clone, Debug, PartialEq, Eq, Enum, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, Enum, Serialize, Deserialize, speedy::Writable, speedy::Readable)]
+
+
 pub enum ClassicAction {
     Up,
     Down
@@ -143,10 +145,10 @@ impl ActionTensor for ClassicAction {
 
 
     /// ```
-    /// use amfi_classic::domain::ClassicAction;
-    /// use amfi_classic::domain::ClassicAction::Down;
+    /// use amfiteatr_classic::domain::ClassicAction;
+    /// use amfiteatr_classic::domain::ClassicAction::Down;
     /// use tch::Tensor;
-    /// use amfi_rl::tensor_data::ActionTensor;
+    /// use amfiteatr_rl::tensor_data::ActionTensor;
     /// let t = Tensor::from_slice(&[1i64;1]);
     /// let action = ClassicAction::try_from_tensor(&t).unwrap();
     /// assert_eq!(action, Down);

@@ -2,8 +2,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
-use amfi_core::domain::{Renew};
-use amfi_core::env::{EnvironmentStateUniScore, EnvironmentStateSequential};
+use amfiteatr_core::domain::{Renew};
+use amfiteatr_core::env::{EnvironmentStateUniScore, EnvironmentStateSequential};
 use log::{debug, trace};
 use std::fmt::{Display, Formatter};
 use std::marker::PhantomData;
@@ -16,7 +16,7 @@ use crate::{AsymmetricRewardTableInt, Side};
 
 /// Structure to make note of player pairing - has information of other player, performed actions
 /// (by this player) and [`Side`] on which player was paired.
-#[derive(Copy, Clone, Debug, Default, Serialize)]
+#[derive(Copy, Clone, Debug, Default, Serialize, speedy::Writable, speedy::Readable)]
 pub struct PlayerPairing<ID: UsizeAgentId> {
     pub paired_player: ID,
     pub taken_action: Option<ClassicAction>,

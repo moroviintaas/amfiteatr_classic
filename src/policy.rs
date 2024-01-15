@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::marker::PhantomData;
 use rand::{Rng, thread_rng};
-use amfi_core::agent::{InformationSet, Policy};
+use amfiteatr_core::agent::{InformationSet, Policy};
 
 use crate::domain::{ClassicAction, ClassicGameDomain, ClassicGameError, UsizeAgentId};
 use crate::domain::ClassicAction::{Down, Up};
