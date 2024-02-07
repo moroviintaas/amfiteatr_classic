@@ -1,7 +1,7 @@
 use std::fmt::{Display, Formatter};
 use log::trace;
 use serde::Serialize;
-use tch::Tensor;
+use amfiteatr_rl::tch::Tensor;
 use amfiteatr_core::agent::{InformationSet, PresentPossibleActions, EvaluatedInformationSet};
 use amfiteatr_core::domain::{Renew};
 use amfiteatr_rl::error::TensorRepresentationError;

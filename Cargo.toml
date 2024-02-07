@@ -14,7 +14,6 @@ description = "Implementation of some classic game theory problems to research o
 rand = "0.8.5"
 amfiteatr_core = {version = "0.1.0" }
 amfiteatr_rl = {version = "0.1.0" }
-tch = "0.14.0"
 enum-map = {version = "2.7.3", features = ["serde"]}
 log = "0.4.20"
 serde = {version = "1.0.196", features = ["rc", "derive"]}

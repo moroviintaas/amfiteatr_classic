@@ -7,7 +7,7 @@ use amfiteatr_core::error::{AmfiError, ConvertError};
 use amfiteatr_core::domain::{Action, DomainParameters, Reward};
 use enum_map::Enum;
 use serde::{Deserialize, Serialize};
-use tch::Tensor;
+use amfiteatr_rl::tch::Tensor;
 use amfiteatr_rl::tensor_data::ActionTensor;
 use crate::domain::TwoPlayersStdName::{Alice, Bob};
 use crate::env::PairingVec;
@@ -147,7 +147,7 @@ impl ActionTensor for ClassicAction {
     /// ```
     /// use amfiteatr_classic::domain::ClassicAction;
     /// use amfiteatr_classic::domain::ClassicAction::Down;
-    /// use tch::Tensor;
+    /// use amfiteatr_rl::tch::Tensor;
     /// use amfiteatr_rl::tensor_data::ActionTensor;
     /// let t = Tensor::from_slice(&[1i64;1]);
     /// let action = ClassicAction::try_from_tensor(&t).unwrap();
