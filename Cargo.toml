@@ -17,6 +17,6 @@ amfiteatr_rl = {version = "0.1.0" }
 tch = "0.14.0"
 enum-map = {version = "2.7.3", features = ["serde"]}
 log = "0.4.20"
-serde = {version = "1.0.195", features = ["rc", "derive"]}
+serde = {version = "1.0.196", features = ["rc", "derive"]}
 thiserror = "1.0.56"
-speedy = {version = "0.8.6"}
+speedy = {version = "0.8.7"}
